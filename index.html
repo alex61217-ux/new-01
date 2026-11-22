@@ -1,0 +1,1217 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>健身房器材巡檢系統｜重訓・飛輪・心肺</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Noto Sans TC"', 'Inter', 'system-ui', 'sans-serif'],
+          },
+        },
+      },
+    };
+  </script>
+  <style>
+    * {
+      -webkit-tap-highlight-color: transparent;
+    }
+    body {
+      background-color: #f1f5f9;
+      color: #0f172a;
+      overscroll-behavior-y: contain;
+    }
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+    .check-btn {
+      transition: all 0.14s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .check-btn:active {
+      transform: scale(0.96);
+    }
+  </style>
+</head>
+<body class="min-h-screen pb-24">
+
+  <!-- Top Sticky Header -->
+  <header class="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200 shadow-sm">
+    <div class="max-w-3xl mx-auto px-3 pt-2.5 pb-2">
+      <!-- Row 1: Title + Sync Status + Share/Export -->
+      <div class="flex items-center justify-between gap-2">
+        <div class="flex items-center gap-2 min-w-0">
+          <div class="w-9 h-9 rounded-xl bg-blue-600 text-white flex items-center justify-center shrink-0 shadow-sm">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+            </svg>
+          </div>
+          <div class="min-w-0">
+            <h1 class="text-base sm:text-lg font-bold text-slate-900 truncate leading-tight">健身房器材巡檢系統</h1>
+            <div class="flex items-center gap-1.5 mt-0.5">
+              <span id="syncDot" class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
+              <span id="syncText" class="text-xs font-medium text-slate-500 truncate">正在初始化...</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-1.5 shrink-0">
+          <button id="btnShare" type="button" class="h-10 px-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 active:bg-slate-300 text-slate-700 text-xs font-semibold flex items-center gap-1 transition" title="分享巡檢連結">
+            <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+            </svg>
+            <span class="hidden sm:inline">分享連結</span>
+          </button>
+          <button id="btnExport" type="button" class="h-10 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white text-xs font-semibold flex items-center gap-1 shadow-sm transition">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+            </svg>
+            <span>匯出報表</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Row 2: Date Selector + Inspector Name -->
+      <div class="grid grid-cols-2 gap-2 mt-2">
+        <div class="relative flex items-center bg-slate-100 rounded-xl px-2.5 h-10 border border-slate-200/80">
+          <svg class="w-4 h-4 text-slate-500 mr-1.5 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+          </svg>
+          <input id="datePicker" type="date" class="bg-transparent text-xs sm:text-sm font-semibold text-slate-800 w-full focus:outline-none" />
+        </div>
+        <div class="relative flex items-center bg-slate-100 rounded-xl px-2.5 h-10 border border-slate-200/80">
+          <svg class="w-4 h-4 text-slate-500 mr-1.5 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+          </svg>
+          <input id="inspectorInput" type="text" placeholder="巡檢人員姓名..." class="bg-transparent text-xs sm:text-sm font-medium text-slate-800 placeholder-slate-400 w-full focus:outline-none" />
+        </div>
+      </div>
+
+      <!-- Row 3: Progress Summary Bar -->
+      <div class="mt-2 bg-slate-50 rounded-xl px-3 py-2 border border-slate-200/70">
+        <div class="flex items-center justify-between text-xs mb-1">
+          <span class="font-semibold text-slate-700">
+            今日總進度：<span id="totalCheckedCount" class="text-blue-600 font-bold">0</span> / 301 台
+          </span>
+          <div class="flex items-center gap-2.5">
+            <span class="font-semibold text-rose-600">
+              異常項目：<span id="totalIssueCount" class="font-bold">0</span> 台
+            </span>
+            <span id="lastUpdatedLabel" class="text-[11px] text-slate-400 hidden sm:inline"></span>
+          </div>
+        </div>
+        <div class="w-full h-2 bg-slate-200 rounded-full overflow-hidden">
+          <div id="progressBar" class="h-full bg-blue-600 rounded-full transition-all duration-300" style="width: 0%"></div>
+        </div>
+      </div>
+
+      <!-- Row 4: Category Tabs -->
+      <div class="grid grid-cols-3 gap-1.5 mt-2 bg-slate-100 p-1 rounded-xl">
+        <button type="button" data-tab="weight" class="tab-btn h-10 rounded-lg text-xs sm:text-sm font-bold transition flex items-center justify-center gap-1 bg-white text-blue-600 shadow-sm">
+          <span>重訓器材</span>
+          <span id="badge-weight" class="text-[11px] px-1.5 py-0.5 rounded-full bg-blue-50 text-blue-600">0/162</span>
+        </button>
+        <button type="button" data-tab="spin" class="tab-btn h-10 rounded-lg text-xs sm:text-sm font-bold transition flex items-center justify-center gap-1 text-slate-600 hover:text-slate-900">
+          <span>飛輪器材</span>
+          <span id="badge-spin" class="text-[11px] px-1.5 py-0.5 rounded-full bg-slate-200/80 text-slate-600">0/41</span>
+        </button>
+        <button type="button" data-tab="cardio" class="tab-btn h-10 rounded-lg text-xs sm:text-sm font-bold transition flex items-center justify-center gap-1 text-slate-600 hover:text-slate-900">
+          <span>心肺器材</span>
+          <span id="badge-cardio" class="text-[11px] px-1.5 py-0.5 rounded-full bg-slate-200/80 text-slate-600">0/98</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content Area -->
+  <main class="max-w-3xl mx-auto px-3 pt-3">
+
+    <!-- Category Instruction Banner -->
+    <div id="instructionBanner" class="rounded-xl bg-amber-50 border border-amber-200/90 px-3.5 py-2.5 mb-3 flex items-start gap-2.5">
+      <svg class="w-5 h-5 text-amber-600 shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+      <p id="instructionText" class="text-xs sm:text-sm font-medium text-amber-900 leading-relaxed">
+        有異常請在格子內填寫狀態並拍照上傳（標籤確認沒問題請打 V）
+      </p>
+    </div>
+
+    <!-- Search & Filter Controls -->
+    <div class="flex items-center gap-2 mb-3">
+      <div class="relative flex-1">
+        <svg class="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+        </svg>
+        <input id="searchInput" type="text" placeholder="搜尋器材編號 (如 W01、15、教練車)..." class="w-full h-11 pl-9 pr-8 rounded-xl bg-white border border-slate-200 text-sm font-medium text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20" />
+        <button id="clearSearchBtn" type="button" class="hidden absolute right-2.5 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-slate-200 text-slate-600 text-xs flex items-center justify-center">✕</button>
+      </div>
+
+      <button id="filterIssuesBtn" type="button" class="h-11 px-3.5 rounded-xl bg-white border border-slate-200 text-xs sm:text-sm font-bold text-slate-700 flex items-center gap-1.5 shrink-0 transition">
+        <span id="filterDot" class="w-2.5 h-2.5 rounded-full bg-slate-300"></span>
+        <span>只看異常</span>
+      </button>
+    </div>
+
+    <!-- Quick Jump Pills for Weight Training -->
+    <div id="weightJumpBar" class="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-2 mb-2">
+      <button type="button" data-jump="ALL" class="jump-pill shrink-0 h-8 px-3 rounded-lg text-xs font-bold bg-blue-600 text-white">全部 (162)</button>
+      <button type="button" data-jump="W01-W50" class="jump-pill shrink-0 h-8 px-3 rounded-lg text-xs font-semibold bg-white border border-slate-200 text-slate-700">W01–W50</button>
+      <button type="button" data-jump="W51-W92" class="jump-pill shrink-0 h-8 px-3 rounded-lg text-xs font-semibold bg-white border border-slate-200 text-slate-700">W51–W92</button>
+      <button type="button" data-jump="W101-W133" class="jump-pill shrink-0 h-8 px-3 rounded-lg text-xs font-semibold bg-white border border-slate-200 text-slate-700">W101–W133</button>
+      <button type="button" data-jump="W141-W179" class="jump-pill shrink-0 h-8 px-3 rounded-lg text-xs font-semibold bg-white border border-slate-200 text-slate-700">W141–W179</button>
+    </div>
+
+    <!-- Equipment Cards Container -->
+    <div id="cardsContainer" class="space-y-3"></div>
+
+    <!-- Empty State -->
+    <div id="emptyState" class="hidden text-center py-12 bg-white rounded-2xl border border-slate-200">
+      <div class="w-12 h-12 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center mx-auto mb-3">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+      </div>
+      <p class="text-sm font-bold text-slate-700">找不到符合條件的器材</p>
+      <p class="text-xs text-slate-400 mt-1">請嘗試清除搜尋關鍵字或關閉「只看異常」篩選</p>
+    </div>
+  </main>
+
+  <!-- Floating Scroll-to-Top Button -->
+  <button id="scrollTopBtn" type="button" class="fixed bottom-5 right-4 z-30 w-12 h-12 rounded-full bg-slate-900/90 text-white shadow-lg flex items-center justify-center opacity-0 pointer-events-none transition-opacity duration-200" aria-label="回到頂部">
+    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M5 15l7-7 7 7" />
+    </svg>
+  </button>
+
+  <!-- Share Link Modal -->
+  <div id="shareModal" class="fixed inset-0 z-50 bg-slate-900/60 hidden items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full p-5 shadow-xl border border-slate-100">
+      <div class="flex items-center justify-between mb-3">
+        <h3 class="text-base font-bold text-slate-900">分享巡檢連結</h3>
+        <button id="closeShareModal" type="button" class="w-8 h-8 rounded-full bg-slate-100 text-slate-500 flex items-center justify-center font-bold">✕</button>
+      </div>
+      <p class="text-xs text-slate-600 leading-relaxed mb-3">
+        將此連結傳送至工作群組（LINE / 訊息），同事開啟後即可直接填寫巡檢紀錄；若已設定 Firebase 雲端資料庫，則可跨裝置即時同步。
+      </p>
+      <div class="flex items-center gap-2 bg-slate-100 p-2 rounded-xl border border-slate-200 mb-4">
+        <input id="shareUrlInput" type="text" readonly class="bg-transparent text-xs text-slate-700 w-full focus:outline-none font-mono" />
+        <button id="copyShareUrlBtn" type="button" class="shrink-0 h-9 px-3 rounded-lg bg-blue-600 text-white text-xs font-bold active:bg-blue-700">複製連結</button>
+      </div>
+      <div id="copyFeedback" class="hidden text-center text-xs font-bold text-emerald-600 mb-2">✓ 已複製連結到剪貼簿！</div>
+      <button id="doneShareModal" type="button" class="w-full h-11 rounded-xl bg-slate-900 text-white text-sm font-bold">完成</button>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="toastBox" class="fixed bottom-5 left-1/2 -translate-x-1/2 z-50 bg-slate-900 text-white text-xs font-semibold px-4 py-2.5 rounded-full shadow-lg opacity-0 pointer-events-none transition-opacity duration-200 whitespace-nowrap">
+    提示訊息
+  </div>
+
+  <!-- Application Logic -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+    import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    import { getFirestore, doc, setDoc, onSnapshot, collection, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+    // ==========================================
+    // 1. EQUIPMENT LISTS & CONSTANTS
+    // ==========================================
+    const WEIGHT_IDS = (() => {
+      const list = [];
+      for (let i = 1; i <= 92; i++) list.push(`W${String(i).padStart(2, '0')}`);
+      for (let i = 101; i <= 133; i++) list.push(`W${i}`);
+      for (let i = 141; i <= 168; i++) list.push(`W${i}`);
+      for (let i = 171; i <= 179; i++) list.push(`W${i}`);
+      return list; // 162
+    })();
+
+    const SPIN_IDS = (() => {
+      const list = ['教練車'];
+      for (let i = 1; i <= 39; i++) list.push(String(i));
+      list.push('預備車');
+      return list; // 41
+    })();
+
+    const CARDIO_IDS = (() => {
+      const list = [];
+      for (let i = 1; i <= 98; i++) list.push(String(i));
+      return list; // 98
+    })();
+
+    const TREADMILL_SET = new Set([
+      ...Array.from({ length: 20 }, (_, i) => String(i + 1)),
+      '22',
+      ...Array.from({ length: 12 }, (_, i) => String(i + 27)),
+      ...Array.from({ length: 8 }, (_, i) => String(i + 53)),
+    ]);
+
+    const WEIGHT_LABELS = ['器材編號', '資產編號', '貼心小提醒', '使用說明書'];
+    const SPIN_ITEMS = ['貼心小提醒', '資產編號', '器材編號', '旋鈕', '座椅調整', '間距對齊'];
+    const CARDIO_STATUS_FIELDS = ['耳機孔', '電視狀況', '坡度鍵', '速度鍵', '插座凹陷', '心肺異音'];
+    const CARDIO_BASE_LABELS = ['器材編號', '資產編號', '貼心小提醒', '使用說明書'];
+
+    const TAB_INSTRUCTIONS = {
+      weight: '有異常請在格子內填寫狀態並拍照上傳（標籤確認沒問題請打 V）',
+      spin: '有異常請在群組內填寫狀態並拍照（標籤確認沒問題請打 V）',
+      cardio: '有異常請寫在表格並在群組內填寫狀態並拍照（標籤確認有問題請打 V）',
+    };
+
+    // ==========================================
+    // 2. STATE & LOCAL STORAGE HELPERS
+    // ==========================================
+    function getTodayDateString() {
+      const now = new Date();
+      const offset = now.getTimezoneOffset() * 60000;
+      return new Date(now.getTime() - offset).toISOString().split('T')[0];
+    }
+
+    const STORAGE_PREFIX = 'gym_inspection_v1_';
+
+    const state = {
+      date: getTodayDateString(),
+      activeTab: 'weight',
+      searchQuery: '',
+      onlyIssues: false,
+      weightRange: 'ALL',
+      inspector: '',
+      records: { weight: {}, spin: {}, cardio: {} },
+      meta: { updatedAt: null, updatedBy: '' },
+      user: null,
+      db: null,
+      appId: typeof __app_id !== 'undefined' ? __app_id : 'gym-inspection-checklist',
+      unsubscribe: null,
+      saveTimers: {},
+    };
+
+    function loadLocalCache(dateStr) {
+      try {
+        const raw = localStorage.getItem(STORAGE_PREFIX + dateStr);
+        if (!raw) return null;
+        return JSON.parse(raw);
+      } catch {
+        return null;
+      }
+    }
+
+    function saveLocalCache(dateStr) {
+      try {
+        const payload = {
+          records: state.records,
+          inspector: state.inspector,
+          updatedAt: Date.now(),
+          updatedBy: state.inspector.trim() || '巡檢人員',
+        };
+        localStorage.setItem(STORAGE_PREFIX + dateStr, JSON.stringify(payload));
+      } catch (e) {
+        console.warn('Local storage save warning:', e);
+      }
+    }
+
+    function showToast(msg) {
+      const box = document.getElementById('toastBox');
+      box.textContent = msg;
+      box.classList.remove('opacity-0', 'pointer-events-none');
+      box.classList.add('opacity-100');
+      clearTimeout(showToast._t);
+      showToast._t = setTimeout(() => {
+        box.classList.remove('opacity-100');
+        box.classList.add('opacity-0', 'pointer-events-none');
+      }, 2200);
+    }
+
+    // ==========================================
+    // 3. FIREBASE INIT & REALTIME SYNC
+    // ==========================================
+    function setSyncStatus(status, text) {
+      const dot = document.getElementById('syncDot');
+      const label = document.getElementById('syncText');
+      label.textContent = text;
+      dot.className = 'w-2 h-2 rounded-full shrink-0 ';
+      if (status === 'synced') dot.className += 'bg-emerald-500';
+      else if (status === 'syncing') dot.className += 'bg-amber-400 animate-pulse';
+      else if (status === 'error') dot.className += 'bg-rose-500';
+      else dot.className += 'bg-slate-400';
+    }
+
+    async function initFirebase() {
+      try {
+        if (typeof __firebase_config === 'undefined' || !__firebase_config) {
+          setSyncStatus('offline', '本機儲存模式（未設定雲端資料庫）');
+          subscribeToDate(state.date);
+          return;
+        }
+
+        const firebaseConfig = JSON.parse(__firebase_config);
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        state.db = getFirestore(app);
+
+        setSyncStatus('syncing', '正在建立雲端連線...');
+
+        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+          await signInWithCustomToken(auth, __initial_auth_token);
+        } else {
+          await signInAnonymously(auth);
+        }
+
+        onAuthStateChanged(auth, (user) => {
+          if (user) {
+            state.user = user;
+            subscribeToDate(state.date);
+          }
+        });
+      } catch (err) {
+        console.error('Firebase init error:', err);
+        setSyncStatus('offline', '雲端未連線，已改用本機儲存');
+        subscribeToDate(state.date);
+      }
+    }
+
+    function subscribeToDate(dateStr) {
+      if (state.unsubscribe) {
+        state.unsubscribe();
+        state.unsubscribe = null;
+      }
+
+      const cached = loadLocalCache(dateStr);
+      state.records = cached?.records || { weight: {}, spin: {}, cardio: {} };
+      if (cached?.inspector && !state.inspector) {
+        state.inspector = cached.inspector;
+        document.getElementById('inspectorInput').value = state.inspector;
+      }
+      state.meta = {
+        updatedAt: cached?.updatedAt ? new Date(cached.updatedAt) : null,
+        updatedBy: cached?.updatedBy || '',
+      };
+      renderAll();
+
+      if (!state.db || !state.user) {
+        setSyncStatus('offline', '本機儲存模式（自動暫存於瀏覽器）');
+        return;
+      }
+
+      setSyncStatus('syncing', `同步 ${dateStr} 雲端資料中...`);
+      const colRef = collection(state.db, 'artifacts', state.appId, 'public', 'data', `inspections_${dateStr}`);
+
+      state.unsubscribe = onSnapshot(
+        colRef,
+        (snapshot) => {
+          const nextRecords = { weight: {}, spin: {}, cardio: {} };
+          let latestTime = null;
+          let latestBy = '';
+
+          snapshot.forEach((docSnap) => {
+            const docId = docSnap.id;
+            const data = docSnap.data();
+            if (nextRecords[docId]) {
+              nextRecords[docId] = data.items || {};
+            }
+            if (data.updatedAt && data.updatedAt.toDate) {
+              const dt = data.updatedAt.toDate();
+              if (!latestTime || dt > latestTime) {
+                latestTime = dt;
+                latestBy = data.updatedBy || '';
+              }
+            }
+          });
+
+          if (!snapshot.empty) {
+            state.records = nextRecords;
+            state.meta = { updatedAt: latestTime, updatedBy: latestBy };
+            saveLocalCache(dateStr);
+          }
+          setSyncStatus('synced', '雲端已即時同步');
+          renderAll();
+        },
+        (error) => {
+          console.error('Firestore snapshot error:', error);
+          setSyncStatus('offline', '雲端同步中斷，已改用本機儲存');
+        }
+      );
+    }
+
+    function scheduleCategorySave(category) {
+      saveLocalCache(state.date);
+      state.meta = {
+        updatedAt: new Date(),
+        updatedBy: state.inspector.trim() || '巡檢人員',
+      };
+      updateSummaryStats();
+
+      if (!state.db || !state.user) {
+        setSyncStatus('offline', '已儲存至本機瀏覽器');
+        return;
+      }
+
+      setSyncStatus('syncing', '正在同步至雲端...');
+      if (state.saveTimers[category]) clearTimeout(state.saveTimers[category]);
+
+      state.saveTimers[category] = setTimeout(async () => {
+        try {
+          const docRef = doc(state.db, 'artifacts', state.appId, 'public', 'data', `inspections_${state.date}`, category);
+          await setDoc(
+            docRef,
+            {
+              date: state.date,
+              category,
+              items: state.records[category],
+              updatedAt: serverTimestamp(),
+              updatedBy: state.inspector.trim() || '巡檢人員',
+            },
+            { merge: true }
+          );
+          setSyncStatus('synced', '雲端已即時同步');
+        } catch (err) {
+          console.error('Save error:', err);
+          setSyncStatus('offline', '雲端同步失敗，已存本機');
+        }
+      }, 300);
+    }
+
+    // ==========================================
+    // 4. DATA HELPERS & EVALUATION
+    // ==========================================
+    function getRecord(category, id) {
+      if (!state.records[category][id]) {
+        if (category === 'weight') {
+          state.records.weight[id] = {
+            fault: '',
+            leather: '',
+            handle: '',
+            labels: {},
+            repairTag: '',
+            note: '',
+            photoLink: '',
+            photoData: '',
+          };
+        } else if (category === 'spin') {
+          state.records.spin[id] = {
+            checks: {},
+            repairTag: '',
+            note: '',
+            photoLink: '',
+          };
+        } else if (category === 'cardio') {
+          state.records.cardio[id] = {
+            status: {},
+            labels: {},
+            repairTag: '',
+            note: '',
+            photoLink: '',
+          };
+        }
+      }
+      return state.records[category][id];
+    }
+
+    function evaluateMachine(category, id) {
+      const rec = state.records[category]?.[id];
+      if (!rec) return { checked: false, hasIssue: false };
+
+      if (category === 'weight') {
+        const labels = rec.labels || {};
+        const checkedLabelsCount = WEIGHT_LABELS.filter((l) => !!labels[l]).length;
+        const hasIssue = Boolean(
+          (rec.fault && rec.fault.trim()) ||
+          (rec.leather && rec.leather.trim()) ||
+          (rec.handle && rec.handle.trim()) ||
+          (rec.repairTag && rec.repairTag.trim()) ||
+          (rec.note && rec.note.trim()) ||
+          (rec.photoLink && rec.photoLink.trim()) ||
+          rec.photoData
+        );
+        return { checked: checkedLabelsCount > 0 || hasIssue, hasIssue };
+      }
+
+      if (category === 'spin') {
+        const checks = rec.checks || {};
+        const checkedCount = SPIN_ITEMS.filter((k) => !!checks[k]).length;
+        const hasIssue = Boolean(
+          (rec.repairTag && rec.repairTag.trim()) ||
+          (rec.note && rec.note.trim()) ||
+          (rec.photoLink && rec.photoLink.trim())
+        );
+        return { checked: checkedCount > 0 || hasIssue, hasIssue };
+      }
+
+      if (category === 'cardio') {
+        const status = rec.status || {};
+        const labels = rec.labels || {};
+        const hasAnyStatus = CARDIO_STATUS_FIELDS.some((f) => status[f] === '無' || status[f] === '有');
+        const hasStatusIssue = CARDIO_STATUS_FIELDS.some((f) => status[f] === '有');
+        const hasLabelIssue = Object.values(labels).some((v) => v === true);
+        const hasOtherIssue = Boolean(
+          (rec.repairTag && rec.repairTag.trim()) ||
+          (rec.note && rec.note.trim()) ||
+          (rec.photoLink && rec.photoLink.trim())
+        );
+        const hasIssue = hasStatusIssue || hasLabelIssue || hasOtherIssue;
+        return { checked: hasAnyStatus || hasIssue, hasIssue };
+      }
+
+      return { checked: false, hasIssue: false };
+    }
+
+    function compressImageFile(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const img = new Image();
+          img.onload = () => {
+            const canvas = document.createElement('canvas');
+            const maxDim = 480;
+            let w = img.width;
+            let h = img.height;
+            if (w > h && w > maxDim) {
+              h = Math.round((h * maxDim) / w);
+              w = maxDim;
+            } else if (h > maxDim) {
+              w = Math.round((w * maxDim) / h);
+              h = maxDim;
+            }
+            canvas.width = w;
+            canvas.height = h;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, w, h);
+            resolve(canvas.toDataURL('image/jpeg', 0.65));
+          };
+          img.onerror = reject;
+          img.src = e.target.result;
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    }
+
+    // ==========================================
+    // 5. RENDERING
+    // ==========================================
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+
+    function updateSummaryStats() {
+      let wChecked = 0, wIssue = 0;
+      WEIGHT_IDS.forEach((id) => {
+        const ev = evaluateMachine('weight', id);
+        if (ev.checked) wChecked++;
+        if (ev.hasIssue) wIssue++;
+      });
+
+      let sChecked = 0, sIssue = 0;
+      SPIN_IDS.forEach((id) => {
+        const ev = evaluateMachine('spin', id);
+        if (ev.checked) sChecked++;
+        if (ev.hasIssue) sIssue++;
+      });
+
+      let cChecked = 0, cIssue = 0;
+      CARDIO_IDS.forEach((id) => {
+        const ev = evaluateMachine('cardio', id);
+        if (ev.checked) cChecked++;
+        if (ev.hasIssue) cIssue++;
+      });
+
+      const totalChecked = wChecked + sChecked + cChecked;
+      const totalIssues = wIssue + sIssue + cIssue;
+      const pct = Math.round((totalChecked / 301) * 100);
+
+      document.getElementById('totalCheckedCount').textContent = totalChecked;
+      document.getElementById('totalIssueCount').textContent = totalIssues;
+      document.getElementById('progressBar').style.width = `${pct}%`;
+
+      document.getElementById('badge-weight').textContent = `${wChecked}/162`;
+      document.getElementById('badge-spin').textContent = `${sChecked}/41`;
+      document.getElementById('badge-cardio').textContent = `${cChecked}/98`;
+
+      const updatedEl = document.getElementById('lastUpdatedLabel');
+      if (state.meta.updatedAt) {
+        const hh = String(state.meta.updatedAt.getHours()).padStart(2, '0');
+        const mm = String(state.meta.updatedAt.getMinutes()).padStart(2, '0');
+        const who = state.meta.updatedBy ? ` (${state.meta.updatedBy})` : '';
+        updatedEl.textContent = `最後更新 ${hh}:${mm}${who}`;
+      } else {
+        updatedEl.textContent = '尚無紀錄';
+      }
+    }
+
+    function filterIdsForActiveTab() {
+      let ids = WEIGHT_IDS;
+      if (state.activeTab === 'spin') ids = SPIN_IDS;
+      else if (state.activeTab === 'cardio') ids = CARDIO_IDS;
+
+      const q = state.searchQuery.trim().toLowerCase();
+
+      return ids.filter((id) => {
+        if (state.activeTab === 'weight' && state.weightRange !== 'ALL' && !q) {
+          const num = parseInt(id.replace('W', ''), 10);
+          if (state.weightRange === 'W01-W50' && !(num >= 1 && num <= 50)) return false;
+          if (state.weightRange === 'W51-W92' && !(num >= 51 && num <= 92)) return false;
+          if (state.weightRange === 'W101-W133' && !(num >= 101 && num <= 133)) return false;
+          if (state.weightRange === 'W141-W179' && !(num >= 141 && num <= 179)) return false;
+        }
+        if (q && !id.toLowerCase().includes(q)) return false;
+        if (state.onlyIssues && !evaluateMachine(state.activeTab, id).hasIssue) return false;
+        return true;
+      });
+    }
+
+    function cardShell(id, ev, innerHtml) {
+      const borderClass = ev.hasIssue
+        ? 'border-rose-300 bg-rose-50/40 ring-1 ring-rose-200'
+        : ev.checked
+        ? 'border-emerald-300 bg-white'
+        : 'border-slate-200 bg-white';
+
+      const statusBadge = ev.hasIssue
+        ? `<span class="px-2 py-0.5 rounded-full text-[11px] font-bold bg-rose-100 text-rose-700">有異常</span>`
+        : ev.checked
+        ? `<span class="px-2 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-700">✓ 已確認</span>`
+        : `<span class="px-2 py-0.5 rounded-full text-[11px] font-medium bg-slate-100 text-slate-500">未檢查</span>`;
+
+      return `
+        <div class="rounded-2xl border ${borderClass} p-3.5 shadow-2xs transition-colors" data-card-id="${escapeHtml(id)}">
+          <div class="flex items-center justify-between gap-2 pb-2.5 border-b border-slate-100">
+            <div class="flex items-center gap-2">
+              <span class="text-base font-extrabold text-slate-900 tracking-tight">${escapeHtml(id)}</span>
+              ${statusBadge}
+            </div>
+            <button type="button" data-action="reset-card" data-id="${escapeHtml(id)}" class="h-8 px-2.5 rounded-lg text-[11px] font-semibold text-slate-500 hover:bg-slate-100">清除</button>
+          </div>
+          ${innerHtml}
+        </div>
+      `;
+    }
+
+    function renderWeightCard(id) {
+      const rec = state.records.weight[id] || { fault: '', leather: '', handle: '', labels: {}, repairTag: '', note: '', photoLink: '', photoData: '' };
+      const labels = rec.labels || {};
+      const ev = evaluateMachine('weight', id);
+      const allLabelsChecked = WEIGHT_LABELS.every((l) => !!labels[l]);
+
+      const labelButtonsHtml = WEIGHT_LABELS.map((labelName) => {
+        const checked = !!labels[labelName];
+        return `
+          <button type="button"
+            data-action="toggle-weight-label"
+            data-id="${id}"
+            data-key="${labelName}"
+            class="check-btn h-10 px-2.5 rounded-xl border text-xs font-bold flex items-center justify-between gap-1.5 ${
+              checked
+                ? 'bg-emerald-600 border-emerald-600 text-white'
+                : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100'
+            }">
+            <span class="truncate">${labelName}</span>
+            <span class="w-5 h-5 rounded-md flex items-center justify-center text-xs font-black shrink-0 ${
+              checked ? 'bg-white/20 text-white' : 'bg-white border border-slate-300 text-transparent'
+            }">V</span>
+          </button>
+        `;
+      }).join('');
+
+      const photoPreviewHtml = rec.photoData
+        ? `
+          <div class="mt-2 flex items-center gap-2.5 bg-white p-2 rounded-xl border border-slate-200">
+            <img src="${rec.photoData}" alt="${id} 異常照片" class="w-16 h-16 object-cover rounded-lg border border-slate-200 shrink-0" />
+            <div class="min-w-0 flex-1">
+              <p class="text-[11px] font-bold text-slate-700 truncate">已附預覽照片</p>
+              <button type="button" data-action="clear-weight-photo" data-id="${id}" class="mt-1 text-[11px] font-bold text-rose-600 underline">移除預覽圖</button>
+            </div>
+          </div>
+        `
+        : '';
+
+      const inner = `
+        <div class="mt-2.5">
+          <div class="flex items-center justify-between mb-1.5">
+            <span class="text-[11px] font-bold text-slate-500">貼紙標籤確認（沒問題請打 V）</span>
+            <button type="button" data-action="weight-all-v" data-id="${id}" class="h-7 px-2.5 rounded-lg text-[11px] font-bold ${
+              allLabelsChecked ? 'bg-emerald-100 text-emerald-800' : 'bg-blue-50 text-blue-700'
+            }">${allLabelsChecked ? '✓ 已全選' : '全選 V'}</button>
+          </div>
+          <div class="grid grid-cols-2 gap-2">${labelButtonsHtml}</div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 mt-3">
+          <div>
+            <label class="block text-[11px] font-bold text-slate-600 mb-1">器材故障</label>
+            <input type="text" data-action="input-weight" data-id="${id}" data-field="fault" value="${escapeHtml(rec.fault)}" placeholder="正常留白 / 填寫異常" class="w-full h-10 px-3 rounded-xl border border-slate-200 bg-white text-xs font-medium focus:outline-none focus:border-blue-500" />
+          </div>
+          <div>
+            <label class="block text-[11px] font-bold text-slate-600 mb-1">皮革破裂</label>
+            <input type="text" data-action="input-weight" data-id="${id}" data-field="leather" value="${escapeHtml(rec.leather)}" placeholder="正常留白 / 填寫異常" class="w-full h-10 px-3 rounded-xl border border-slate-200 bg-white text-xs font-medium focus:outline-none focus:border-blue-500" />
+          </div>
+          <div>
+            <label class="block text-[11px] font-bold text-slate-600 mb-1">把手</label>
+            <input type="text" data-action="input-weight" data-id="${id}" data-field="handle" value="${escapeHtml(rec.handle)}" placeholder="正常留白 / 填寫異常" class="w-full h-10 px-3 rounded-xl border border-slate-200 bg-white text-xs font-medium focus:outline-none focus:border-blue-500" />
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-2.5">
+          <div>
+            <label class="block text-[11px] font-bold text-slate-600 mb-1">維修牌號碼</label>
+            <input type="text" data-action="input-weight" data-id="${id}" data-field="repairTag" value="${escapeHtml(rec.repairTag)}" placeholder="填寫維修牌號碼..." class="w-full h-10 px-3 rounded-xl border border-slate-200 bg-white text-xs font-medium focus:outline-none focus:border-blue-500" />
+          </div>
+          <div>
+            <label class="block text-[11px] font-bold text-slate-600 mb-1">異常照片連結（雲端硬碟連結）</label>
+            <input type="text" data-action="input-weight" data-id="${id}" data-field="photoLink" value="${escapeHtml(rec.photoLink)}" placeholder="貼上雲端硬碟共用連結..." class="w-full h-10 px-3 rounded-xl border border-slate-200 bg-white text-xs font-medium focus:outline-none focus:border-blue-500" />
+          </div>
+        </div>
+
+        <div class="mt-2.5 flex items-center justify-between gap-2">
+          <label class="inline-flex items-center gap-1.5 h-9 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-xs font-bold text-slate-700 cursor-pointer">
+            <span>📷 拍照 / 選取預覽圖</span>
+            <input type="file" accept="image/*" capture="environment" data-action="photo-weight" data-id="${id}" class="hidden" />
+          </label>
+          <span class="text-[11px] text-slate-400">建議同步上傳雲端硬碟並貼連結</span>
+        </div>
+        ${photoPreviewHtml}
+      `;
+
+      return cardShell(id, ev, inner);
+    }
+
+    function renderSpinCard(id) {
+      const rec = state.records.spin[id] || { checks: {}, repairTag: '', note: '', photoLink: '' };
+      const checks = rec.checks || {};
+      const ev = evaluateMachine('spin', id);
+      const allChecked = SPIN_ITEMS.every((k) => !!checks[k]);
+
+      const btns = SPIN_ITEMS.map((item) => {
+        const ok = !!checks[item];
+        return `
+          <button type="button"
+            data-action="toggle-spin-item"
+            data-id="${escapeHtml(id)}"
+            data-key="${item}"
+            class="check-btn h-10 px-2.5 rounded-xl border text-xs font-bold flex items-center justify-between gap-1 ${
+              ok ? 'bg-emerald-600 border-emerald-600 text-white' : 'bg-slate-50 border-slate-200 text-slate-700'
+            }">
+            <span class="truncate">${item}</span>
+            <span class="w-5 h-5 rounded-md flex items-center justify-center text-xs font-black ${
+              ok ? 'bg-white/20 text-white' : 'bg-white border border-slate-300 text-transparent'
+            }">V</span>
+          </button>
+        `;
+      }).join('');
+
+      const inner = `
+        <div class="mt-2.5">
+          <div class="flex items-center justify-between mb-1.5">
+            <span class="text-[11px] font-bold text-slate-500">檢查項目（正常請打 V）</span>
+            <button type="button" data-action="spin-all-v" data-id="${escapeHtml(id)}" class="h-7 px-2.5 rounded-lg text-[11px] font-bold ${
+              allChecked ? 'bg-emerald-100 text-emerald-800' : 'bg-blue-50 text-blue-700'
+            }">${allChecked ? '✓ 已全選' : '全選 V'}</button>
+          </div>
+          <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">${btns}</div>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-3">
+          <div>
+            <label class="block text-[11px] font-bold text-slate-600 mb-1">維修牌號碼與問題</label>
+            <input type="text" data-action="input-spin" data-id="${escapeHtml(id)}" data-field="repairTag" value="${escapeHtml(rec.repairTag)}" placeholder="有異常請填寫維修牌或問題..." class="w-full h-10 px-3 rounded-xl border border-slate-200 bg-white text-xs font-medium focus:outline-none focus:border-blue-500" />
+          </div>
+          <div>
+            <label class="block text-[11px] font-bold text-slate-600 mb-1">異常照片連結</label>
+            <input type="text" data-action="input-spin" data-id="${escapeHtml(id)}" data-field="photoLink" value="${escapeHtml(rec.photoLink)}" placeholder="貼上雲端硬碟連結（選填）..." class="w-full h-10 px-3 rounded-xl border border-slate-200 bg-white text-xs font-medium focus:outline-none focus:border-blue-500" />
+          </div>
+        </div>
+      `;
+
+      return cardShell(id, ev, inner);
+    }
+
+    function renderCardioCard(id) {
+      const rec = state.records.cardio[id] || { status: {}, labels: {}, repairTag: '', note: '', photoLink: '' };
+      const status = rec.status || {};
+      const labels = rec.labels || {};
+      const ev = evaluateMachine('cardio', id);
+
+      const labelList = TREADMILL_SET.has(id)
+        ? [...CARDIO_BASE_LABELS, '跑帶停止']
+        : CARDIO_BASE_LABELS;
+
+      const statusHtml = CARDIO_STATUS_FIELDS.map((field) => {
+        const cur = status[field] || '';
+        return `
+          <div class="flex items-center justify-between bg-slate-50 border border-slate-200/80 rounded-xl px-2.5 py-1.5">
+            <span class="text-xs font-bold text-slate-700">${field}</span>
+            <div class="flex items-center gap-1">
+              <button type="button" data-action="set-cardio-status" data-id="${id}" data-field="${field}" data-val="無" class="h-7 px-2.5 rounded-lg text-xs font-bold ${
+                cur === '無' ? 'bg-emerald-600 text-white' : 'bg-white border border-slate-200 text-slate-600'
+              }">無</button>
+              <button type="button" data-action="set-cardio-status" data-id="${id}" data-field="${field}" data-val="有" class="h-7 px-2.5 rounded-lg text-xs font-bold ${
+                cur === '有' ? 'bg-rose-600 text-white' : 'bg-white border border-slate-200 text-slate-600'
+              }">有</button>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      const labelHtml = labelList.map((lbl) => {
+        const isIssue = !!labels[lbl];
+        return `
+          <button type="button"
+            data-action="toggle-cardio-label"
+            data-id="${id}"
+            data-key="${lbl}"
+            class="check-btn h-10 px-2.5 rounded-xl border text-xs font-bold flex items-center justify-between gap-1 ${
+              isIssue ? 'bg-rose-600 border-rose-600 text-white' : 'bg-slate-50 border-slate-200 text-slate-700'
+            }">
+            <span class="truncate">${lbl}</span>
+            <span class="w-5 h-5 rounded-md flex items-center justify-center text-xs font-black ${
+              isIssue ? 'bg-white/20 text-white' : 'bg-white border border-slate-300 text-transparent'
+            }">V</span>
+          </button>
+        `;
+      }).join('');
+
+      const inner = `
+        <div class="mt-2.5">
+          <div class="text-[11px] font-bold text-slate-500 mb-1.5">功能／異常狀態（無異常請選「無」，有異常請選「有」）</div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">${statusHtml}</div>
+        </div>
+
+        <div class="mt-3">
+          <div class="text-[11px] font-bold text-slate-500 mb-1.5">標籤確認（標籤有問題請打 V）</div>
+          <div class="grid grid-cols-2 gap-2">${labelHtml}</div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-3">
+          <div>
+            <label class="block text-[11px] font-bold text-slate-600 mb-1">維修牌號碼與問題</label>
+            <input type="text" data-action="input-cardio" data-id="${id}" data-field="repairTag" value="${escapeHtml(rec.repairTag)}" placeholder="填寫維修牌號碼或異常說明..." class="w-full h-10 px-3 rounded-xl border border-slate-200 bg-white text-xs font-medium focus:outline-none focus:border-blue-500" />
+          </div>
+          <div>
+            <label class="block text-[11px] font-bold text-slate-600 mb-1">異常照片連結</label>
+            <input type="text" data-action="input-cardio" data-id="${id}" data-field="photoLink" value="${escapeHtml(rec.photoLink)}" placeholder="貼上雲端硬碟連結（選填）..." class="w-full h-10 px-3 rounded-xl border border-slate-200 bg-white text-xs font-medium focus:outline-none focus:border-blue-500" />
+          </div>
+        </div>
+      `;
+
+      return cardShell(id, ev, inner);
+    }
+
+    function renderAll() {
+      updateSummaryStats();
+      document.getElementById('instructionText').textContent = TAB_INSTRUCTIONS[state.activeTab];
+      document.getElementById('weightJumpBar').classList.toggle('hidden', state.activeTab !== 'weight');
+
+      const ids = filterIdsForActiveTab();
+      const container = document.getElementById('cardsContainer');
+      const emptyEl = document.getElementById('emptyState');
+
+      if (ids.length === 0) {
+        container.innerHTML = '';
+        emptyEl.classList.remove('hidden');
+        return;
+      }
+
+      emptyEl.classList.add('hidden');
+      container.innerHTML = ids
+        .map((id) => {
+          if (state.activeTab === 'weight') return renderWeightCard(id);
+          if (state.activeTab === 'spin') return renderSpinCard(id);
+          return renderCardioCard(id);
+        })
+        .join('');
+    }
+
+    // ==========================================
+    // 6. EXPORT CSV
+    // ==========================================
+    function exportCsvReport() {
+      const rows = [['日期', '巡檢人員', '類別', '器材編號', '檢查狀態', '異常判定', '詳細內容', '照片連結']];
+
+      WEIGHT_IDS.forEach((id) => {
+        const rec = state.records.weight[id] || {};
+        const ev = evaluateMachine('weight', id);
+        const detail = [
+          rec.fault ? `故障:${rec.fault}` : '',
+          rec.leather ? `皮革:${rec.leather}` : '',
+          rec.handle ? `把手:${rec.handle}` : '',
+          rec.repairTag ? `維修牌:${rec.repairTag}` : '',
+        ].filter(Boolean).join(' / ');
+        rows.push([
+          state.date,
+          state.inspector,
+          '重訓器材',
+          id,
+          ev.checked ? '已確認' : '未檢查',
+          ev.hasIssue ? '有異常' : '正常',
+          detail,
+          rec.photoLink || '',
+        ]);
+      });
+
+      SPIN_IDS.forEach((id) => {
+        const rec = state.records.spin[id] || {};
+        const ev = evaluateMachine('spin', id);
+        rows.push([
+          state.date,
+          state.inspector,
+          '飛輪器材',
+          id,
+          ev.checked ? '已確認' : '未檢查',
+          ev.hasIssue ? '有異常' : '正常',
+          rec.repairTag || '',
+          rec.photoLink || '',
+        ]);
+      });
+
+      CARDIO_IDS.forEach((id) => {
+        const rec = state.records.cardio[id] || {};
+        const ev = evaluateMachine('cardio', id);
+        const stList = Object.entries(rec.status || {}).filter(([, v]) => v === '有').map(([k]) => `${k}:有`);
+        const lbList = Object.entries(rec.labels || {}).filter(([, v]) => v).map(([k]) => `標籤異常:${k}`);
+        const detail = [...stList, ...lbList, rec.repairTag ? `維修牌:${rec.repairTag}` : ''].filter(Boolean).join(' / ');
+        rows.push([
+          state.date,
+          state.inspector,
+          '心肺器材',
+          id,
+          ev.checked ? '已確認' : '未檢查',
+          ev.hasIssue ? '有異常' : '正常',
+          detail,
+          rec.photoLink || '',
+        ]);
+      });
+
+      const csvContent = '\uFEFF' + rows.map((r) => r.map((cell) => `"${String(cell || '').replace(/"/g, '""')}"`).join(',')).join('\n');
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `器材巡檢報表_${state.date}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+      showToast('已匯出 CSV 報表');
+    }
+
+    // ==========================================
+    // 7. EVENT BINDINGS
+    // ==========================================
+    function bindEvents() {
+      const datePicker = document.getElementById('datePicker');
+      datePicker.value = state.date;
+      datePicker.addEventListener('change', (e) => {
+        if (!e.target.value) return;
+        state.date = e.target.value;
+        subscribeToDate(state.date);
+      });
+
+      const inspectorInput = document.getElementById('inspectorInput');
+      inspectorInput.addEventListener('input', (e) => {
+        state.inspector = e.target.value;
+        saveLocalCache(state.date);
+      });
+
+      document.querySelectorAll('.tab-btn').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          state.activeTab = btn.dataset.tab;
+          document.querySelectorAll('.tab-btn').forEach((b) => {
+            const active = b.dataset.tab === state.activeTab;
+            b.className = `tab-btn h-10 rounded-lg text-xs sm:text-sm font-bold transition flex items-center justify-center gap-1 ${
+              active ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-600 hover:text-slate-900'
+            }`;
+          });
+          renderAll();
+        });
+      });
+
+      const searchInput = document.getElementById('searchInput');
+      const clearSearchBtn = document.getElementById('clearSearchBtn');
+      searchInput.addEventListener('input', (e) => {
+        state.searchQuery = e.target.value;
+        clearSearchBtn.classList.toggle('hidden', !state.searchQuery);
+        renderAll();
+      });
+      clearSearchBtn.addEventListener('click', () => {
+        searchInput.value = '';
+        state.searchQuery = '';
+        clearSearchBtn.classList.add('hidden');
+        renderAll();
+      });
+
+      const filterBtn = document.getElementById('filterIssuesBtn');
+      const filterDot = document.getElementById('filterDot');
+      filterBtn.addEventListener('click', () => {
+        state.onlyIssues = !state.onlyIssues;
+        filterBtn.className = `h-11 px-3.5 rounded-xl border text-xs sm:text-sm font-bold flex items-center gap-1.5 shrink-0 transition ${
+          state.onlyIssues ? 'bg-rose-600 border-rose-600 text-white' : 'bg-white border-slate-200 text-slate-700'
+        }`;
+        filterDot.className = `w-2.5 h-2.5 rounded-full ${state.onlyIssues ? 'bg-white' : 'bg-slate-300'}`;
+        renderAll();
+      });
+
+      document.querySelectorAll('.jump-pill').forEach((pill) => {
+        pill.addEventListener('click', () => {
+          state.weightRange = pill.dataset.jump;
+          document.querySelectorAll('.jump-pill').forEach((p) => {
+            const active = p.dataset.jump === state.weightRange;
+            p.className = `jump-pill shrink-0 h-8 px-3 rounded-lg text-xs ${
+              active ? 'font-bold bg-blue-600 text-white' : 'font-semibold bg-white border border-slate-200 text-slate-700'
+            }`;
+          });
+          renderAll();
+        });
+      });
+
+      const cardsContainer = document.getElementById('cardsContainer');
+      cardsContainer.addEventListener('click', (e) => {
+        const btn = e.target.closest('button[data-action]');
+        if (!btn) return;
+        const action = btn.dataset.action;
+        const id = btn.dataset.id;
+
+        if (action === 'toggle-weight-label') {
+          const rec = getRecord('weight', id);
+          rec.labels[btn.dataset.key] = !rec.labels[btn.dataset.key];
+          scheduleCategorySave('weight');
+          renderAll();
+        } else if (action === 'weight-all-v') {
+          const rec = getRecord('weight', id);
+          const allOn = WEIGHT_LABELS.every((l) => !!rec.labels[l]);
+          WEIGHT_LABELS.forEach((l) => {
+            rec.labels[l] = !allOn;
+          });
+          scheduleCategorySave('weight');
+          renderAll();
+        } else if (action === 'clear-weight-photo') {
+          const rec = getRecord('weight', id);
+          rec.photoData = '';
+          scheduleCategorySave('weight');
+          renderAll();
+        } else if (action === 'toggle-spin-item') {
+          const rec = getRecord('spin', id);
+          rec.checks[btn.dataset.key] = !rec.checks[btn.dataset.key];
+          scheduleCategorySave('spin');
+          renderAll();
+        } else if (action === 'spin-all-v') {
+          const rec = getRecord('spin', id);
+          const allOn = SPIN_ITEMS.every((k) => !!rec.checks[k]);
+          SPIN_ITEMS.forEach((k) => {
+            rec.checks[k] = !allOn;
+          });
+          scheduleCategorySave('spin');
+          renderAll();
+        } else if (action === 'set-cardio-status') {
+          const rec = getRecord('cardio', id);
+          const field = btn.dataset.field;
+          const val = btn.dataset.val;
+          rec.status[field] = rec.status[field] === val ? '' : val;
+          scheduleCategorySave('cardio');
+          renderAll();
+        } else if (action === 'toggle-cardio-label') {
+          const rec = getRecord('cardio', id);
+          rec.labels[btn.dataset.key] = !rec.labels[btn.dataset.key];
+          scheduleCategorySave('cardio');
+          renderAll();
+        } else if (action === 'reset-card') {
+          delete state.records[state.activeTab][id];
+          scheduleCategorySave(state.activeTab);
+          renderAll();
+          showToast(`已清除 ${id} 紀錄`);
+        }
+      });
+
+      cardsContainer.addEventListener('input', (e) => {
+        const input = e.target.closest('input[data-action]');
+        if (!input) return;
+        const action = input.dataset.action;
+        const id = input.dataset.id;
+        const field = input.dataset.field;
+
+        if (action === 'input-weight') {
+          const rec = getRecord('weight', id);
+          rec[field] = input.value;
+          scheduleCategorySave('weight');
+          updateSummaryStats();
+        } else if (action === 'input-spin') {
+          const rec = getRecord('spin', id);
+          rec[field] = input.value;
+          scheduleCategorySave('spin');
+          updateSummaryStats();
+        } else if (action === 'input-cardio') {
+          const rec = getRecord('cardio', id);
+          rec[field] = input.value;
+          scheduleCategorySave('cardio');
+          updateSummaryStats();
+        }
+      });
+
+      cardsContainer.addEventListener('change', async (e) => {
+        const fileInput = e.target.closest('input[type="file"][data-action="photo-weight"]');
+        if (!fileInput || !fileInput.files?.[0]) return;
+        const id = fileInput.dataset.id;
+        try {
+          const dataUrl = await compressImageFile(fileInput.files[0]);
+          const rec = getRecord('weight', id);
+          rec.photoData = dataUrl;
+          scheduleCategorySave('weight');
+          renderAll();
+          showToast(`已載入 ${id} 預覽圖`);
+        } catch {
+          showToast('圖片處理失敗');
+        }
+      });
+
+      document.getElementById('btnExport').addEventListener('click', exportCsvReport);
+
+      const shareModal = document.getElementById('shareModal');
+      const shareUrlInput = document.getElementById('shareUrlInput');
+      const copyFeedback = document.getElementById('copyFeedback');
+      document.getElementById('btnShare').addEventListener('click', () => {
+        shareUrlInput.value = window.location.href;
+        copyFeedback.classList.add('hidden');
+        shareModal.classList.remove('hidden');
+        shareModal.classList.add('flex');
+      });
+      const closeModal = () => {
+        shareModal.classList.add('hidden');
+        shareModal.classList.remove('flex');
+      };
+      document.getElementById('closeShareModal').addEventListener('click', closeModal);
+      document.getElementById('doneShareModal').addEventListener('click', closeModal);
+      document.getElementById('copyShareUrlBtn').addEventListener('click', async () => {
+        try {
+          await navigator.clipboard.writeText(shareUrlInput.value);
+          copyFeedback.classList.remove('hidden');
+        } catch {
+          shareUrlInput.select();
+          document.execCommand('copy');
+          copyFeedback.classList.remove('hidden');
+        }
+      });
+
+      const scrollTopBtn = document.getElementById('scrollTopBtn');
+      window.addEventListener('scroll', () => {
+        const show = window.scrollY > 300;
+        scrollTopBtn.classList.toggle('opacity-0', !show);
+        scrollTopBtn.classList.toggle('pointer-events-none', !show);
+        scrollTopBtn.classList.toggle('opacity-100', show);
+      });
+      scrollTopBtn.addEventListener('click', () => {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      });
+    }
+
+    bindEvents();
+    initFirebase();
+  </script>
+</body>
+</html>
